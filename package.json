@@ -1,0 +1,20 @@
+{
+  "name": "pouchdb-collate",
+  "version": "0.0.0",
+  "description": "",
+  "main": "lib/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pouchdb/collate.git"
+  },
+  "keywords": [
+    "pouchdb",
+    "pouch",
+    "couch",
+    "couchdb"
+  ],
+  "license": "Apache",
+  "bugs": {
+    "url": "https://github.com/pouchdb/collate/issues"
+  }
+}
