@@ -51,6 +51,10 @@ function collationIndex(x) {
   if (Array.isArray(x)) {
     return 4.5;
   }
+  if (typeof x === 'undefined') {
+    // CouchDB indexes both null/undefined as null
+    return 1;
+  }
 }
 module.exports = pouchCollate;
 function pouchCollate(a, b) {
@@ -59,14 +63,14 @@ function pouchCollate(a, b) {
   if ((ai - bi) !== 0) {
     return ai - bi;
   }
-  if (a === null) {
+  if (a === null || typeof a === 'undefined') {
     return 0;
   }
   if (typeof a === 'number') {
     return a - b;
   }
   if (typeof a === 'boolean') {
-    return a < b ? -1 : 1;
+    return a === b ? 0 : (a < b ? -1 : 1);
   }
   if (typeof a === 'string') {
     return stringCollate(a, b);
