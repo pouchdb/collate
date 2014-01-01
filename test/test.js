@@ -36,8 +36,8 @@ describe('collate',function(){
 		collate(c.array,c.array).should.equal(0);
 	});
 	it('compare boolean to itself', function(){
-		collate(a.bool,a.bool).should.equal(1);
-		collate(b.bool,b.bool).should.equal(1);
+		collate(a.bool,a.bool).should.equal(0);
+		collate(b.bool,b.bool).should.equal(0);
 	});
 	it('compare string to itself', function(){
 		collate(a.string,a.string).should.equal(0);
