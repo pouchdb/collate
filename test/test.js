@@ -1,5 +1,9 @@
+'use strict';
+
 var should = require('chai').should();
-var collate = require('../lib');
+var pouchCollate = require('../lib');
+var collate = pouchCollate.collate;
+var normalizeKey = pouchCollate.normalizeKey;
 
 describe('collate',function(){
 	var a = {
@@ -96,4 +100,35 @@ describe('collate',function(){
 		collate(function(){},a.number).should.not.equal(collate(function(){},a.number));
 		collate(function(){},b.number).should.not.equal(collate(function(){},b.number));
 	});
+});
+
+describe('normalizeKey',function(){
+
+  it('verify key normalizations', function(){
+    var normalizations = [
+      [null, null],
+      [NaN, null],
+      [undefined, null],
+      [Infinity, null],
+      [-Infinity, null],
+      ['', ''],
+      ['foo', 'foo'],
+      ['0', '0'],
+      ['1', '1'],
+      [0, 0],
+      [1, 1],
+      [Number.MAX_VALUE, Number.MAX_VALUE],
+      [new Date('1982-11-30T00:00:00.000Z'), '1982-11-30T00:00:00.000Z'] // date Thriller was released
+    ];
+
+    normalizations.forEach(function(normalization){
+      var original = normalization[0];
+      var expected = normalization[1];
+      var normalized = normalizeKey(original);
+
+      var message = 'check normalization of ' + JSON.stringify(original) + ' to ' + JSON.stringify(expected) +
+        ', got ' + JSON.stringify(normalized);;
+      should.equal(normalized, expected, message);
+    });
+  });
 });
