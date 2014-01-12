@@ -67,6 +67,10 @@ describe('collate', function () {
     collate(a.array, c.array).should.equal(1);
     collate(c.array, a.array).should.equal(-1);
   });
+  it('compare array to array', function () {
+    collate([a.array], [b.array]).should.equal(-1);
+    collate([b.array], [a.array]).should.equal(1);
+  });
   it('compare boolean to boolean', function () {
     collate(a.bool, b.bool).should.equal(1);
     collate(b.bool, a.bool).should.equal(-1);
@@ -108,6 +112,7 @@ describe('collate', function () {
     }, b.number).should.not.equal(collate(function () {
     }, b.number));
   });
+
 });
 
 describe('normalizeKey', function () {
