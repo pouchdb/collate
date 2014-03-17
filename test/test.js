@@ -4,6 +4,25 @@ var should = require('chai').should();
 var pouchCollate = require('../lib');
 var collate = pouchCollate.collate;
 var normalizeKey = pouchCollate.normalizeKey;
+var utils = require('../lib/utils');
+
+var verifyLexicalKeysSort = function (keys) {
+  var lexical = keys.map(function (key) {
+    return [key, pouchCollate.toIndexableString(key)];
+  });
+  lexical.sort(function (a, b) {
+    return utils.stringLexCompare(a[1], b[1]);
+  });
+  keys.sort(pouchCollate.collate);
+
+  keys.forEach(function (expected, i) {
+    var actual = lexical[i][0];
+
+    should.equal(actual, expected, 'expect ' + JSON.stringify(actual) +
+        ' is ' + JSON.stringify(expected));
+  });
+};
+
 
 describe('collate', function () {
   var a = {
@@ -88,29 +107,25 @@ describe('collate', function () {
     collate(b.object, a.object).should.equal(1);
     collate(c.object, b.object).should.equal(-1);
     collate(b.object, c.object).should.equal(1);
-    collate(c.object, a.object).should.equal(-2);
-    collate(a.object, c.object).should.equal(2);
+    collate(c.object, a.object).should.be.below(0);
+    collate(a.object, c.object).should.be.above(0);
   });
   it('objects differing only in num of keys', function () {
     collate({1: 1}, {1: 1, 2: 2}).should.equal(-1);
     collate({1: 1, 2: 2}, {1: 1}).should.equal(1);
   });
   it('compare number to null', function () {
-    collate(a.number, null).should.equal(2);
+    collate(a.number, null).should.be.above(0);
   });
   it('compare number to function', function () {
     collate(a.number, function () {
-    }).should.not.equal(collate(a.number, function () {
-    }));
+    }).should.not.equal(collate(a.number, function () {}));
     collate(b.number, function () {
-    }).should.not.equal(collate(b.number, function () {
-    }));
+    }).should.not.equal(collate(b.number, function () {}));
     collate(function () {
-    }, a.number).should.not.equal(collate(function () {
-    }, a.number));
+    }, a.number).should.not.equal(collate(function () {}, a.number));
     collate(function () {
-    }, b.number).should.not.equal(collate(function () {
-    }, b.number));
+    }, b.number).should.not.equal(collate(function () {}, b.number));
   });
 
 });
@@ -138,11 +153,128 @@ describe('normalizeKey', function () {
       var original = normalization[0];
       var expected = normalization[1];
       var normalized = normalizeKey(original);
-      
+
       var message = 'check normalization of ' + JSON.stringify(original) +
         ' to ' + JSON.stringify(expected) +
         ', got ' + JSON.stringify(normalized);
       should.equal(normalized, expected, message);
     });
+  });
+});
+
+describe('indexableString', function () {
+
+  it('verify intToDecimalForm', function () {
+    utils.intToDecimalForm(0).should.equal('0');
+    utils.intToDecimalForm(Number.MIN_VALUE).should.equal('0');
+    utils.intToDecimalForm(-Number.MIN_VALUE).should.equal('0');
+
+    var maxValueStr = '1797693134862316800886484642206468426866682428440286464' +
+      '42228680066046004606080400844208228060084840044686866242482868202680268' +
+      '82040288406280040662242886466688240606642242682208668042640440204020242' +
+      '48802248082808208888442866208026644060866608420408868240026826626668642' +
+      '46642840408646468824200860804260804068888';
+
+    utils.intToDecimalForm(Number.MAX_VALUE).should.equal(maxValueStr);
+    utils.intToDecimalForm(-Number.MAX_VALUE).should.equal('-' + maxValueStr);
+
+    var simpleNums = [-3000, 3000, 322, 2308, -32, -1, 0, 1, 2, -2, -10, 10, -100, 100];
+
+    simpleNums.forEach(function (simpleNum) {
+      utils.intToDecimalForm(simpleNum).should.equal(simpleNum.toString());
+    });
+  });
+
+  it('verify toIndexableString()', function () {
+    var keys = [
+      null,
+      false,
+      true,
+      -Number.MAX_VALUE,
+      -300,
+      -200,
+      -100,
+      -10,
+      -2.5,
+      -2,
+      -1.5,
+      -1,
+      -0.5,
+      -0.0001,
+      -Number.MIN_VALUE,
+      0,
+      Number.MIN_VALUE,
+      0.0001,
+      0.1,
+      0.5,
+      1,
+      1.5,
+      2,
+      3,
+      10,
+      15,
+      100,
+      200,
+      300,
+      Number.MAX_VALUE,
+      '',
+      '1',
+      '10',
+      '100',
+      '2',
+      '20',
+      '[]',
+      //'é',
+      'foo',
+      'mo',
+      'moe',
+      //'moé',
+      //'moët et chandon',
+      'moz',
+      'mozilla',
+      'mozilla with a super long string see how far it can go',
+      'mozzy',
+      [],
+      [ null ],
+      [ null, null ],
+      [ null, 'foo' ],
+      [ false ],
+      [ false, 100 ],
+      [ true ],
+      [ true, 100 ],
+      [ 0 ],
+      [ 0, null ],
+      [ 0, 1 ],
+      [ 0, '' ],
+      [ 0, 'foo' ],
+      [ '', '' ],
+      [ 'foo' ],
+      [ 'foo', 1 ],
+      {},
+      { '0': null },
+      { '0': false },
+      { '0': true },
+      { '0': 0 },
+      { '0': 1 },
+      { '0': 'bar' },
+      { '0': 'foo' },
+      { '0': 'foo', '1': false },
+      { '0': 'foo', '1': true },
+      { '0': 'foo', '1': 0 },
+      { '0': 'foo', '1': '0' },
+      { '0': 'foo', '1': 'bar' },
+      { '0': 'quux' },
+      { '1': 'foo' }
+      //{ '1': 'foo', '0' : 'foo' } // key order actually matters, but node sorts them
+    ];
+    verifyLexicalKeysSort(keys);
+  });
+
+  it('verify toIndexableString()', function () {
+    var keys = [
+      ['test', 'test'],
+      ['test\u0000']
+    ];
+    verifyLexicalKeysSort(keys);
   });
 });
