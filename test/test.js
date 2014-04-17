@@ -4,6 +4,7 @@ var should = require('chai').should();
 var pouchCollate = require('../lib');
 var collate = pouchCollate.collate;
 var normalizeKey = pouchCollate.normalizeKey;
+var toIndexableString = pouchCollate.toIndexableString;
 var utils = require('../lib/utils');
 
 var verifyLexicalKeysSort = function (keys) {
@@ -276,5 +277,40 @@ describe('indexableString', function () {
       ['test\u0000']
     ];
     verifyLexicalKeysSort(keys);
+  });
+
+  it('verify deep normalization', function () {
+    var a = {
+      list : [undefined, '1982-11-30T00:00:00.000Z'],
+      obj : {
+        foo: null,
+        date: '1982-11-30T00:00:00.000Z'
+      },
+      brokenList : [undefined, 1, 2, undefined, 3, 4, 5, undefined]
+    };
+    var b = {
+      list : [null, new Date('1982-11-30T00:00:00.000Z')],
+      obj : {
+        foo: NaN,
+        date: new Date('1982-11-30T00:00:00.000Z')
+      },
+      ignoredParam : undefined,
+      brokenList : [null, 1, 2, null, 3, 4, 5, null]
+    };
+
+    // sanity check
+    JSON.stringify(a).should.equal(JSON.stringify(b), 'stringify a,b');
+
+    toIndexableString(a).should.equal(toIndexableString(b), 'string a,b');
+    toIndexableString(a).should.equal(toIndexableString(b), 'string a,a');
+    toIndexableString(b).should.equal(toIndexableString(b), 'string b,b');
+
+    normalizeKey(a).should.deep.equal(normalizeKey(b), 'normalize a,b');
+    normalizeKey(a).should.deep.equal(normalizeKey(a), 'normalize a,a');
+    normalizeKey(b).should.deep.equal(normalizeKey(b), 'normalize b,b');
+
+    collate(a, b).should.equal(0, 'collate a,b');
+    collate(a, a).should.equal(0, 'collate a,a');
+    collate(b, b).should.equal(0, 'collate b,b');
   });
 });
