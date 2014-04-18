@@ -8,8 +8,14 @@ var SEP = ''; // set to '_' for easier debugging
 var utils = require('./utils');
 
 exports.collate = function (a, b) {
+
+  if (a === b) {
+    return 0;
+  }
+
   a = exports.normalizeKey(a);
   b = exports.normalizeKey(b);
+
   var ai = collationIndex(a);
   var bi = collationIndex(b);
   if ((ai - bi) !== 0) {
@@ -40,8 +46,29 @@ exports.normalizeKey = function (key) {
         return null;
       }
       return key;
+    case 'object':
+      var origKey = key;
+      if (Array.isArray(key)) {
+        var len = key.length;
+        key = new Array(len);
+        for (var i = 0; i < len; i++) {
+          key[i] = exports.normalizeKey(origKey[i]);
+        }
+      } else if (key instanceof Date) {
+        return key.toJSON();
+      } else if (key !== null) { // generic object
+        key = {};
+        for (var k in origKey) {
+          if (origKey.hasOwnProperty(k)) {
+            var val = origKey[k];
+            if (typeof val !== 'undefined') {
+              key[k] = exports.normalizeKey(val);
+            }
+          }
+        }
+      }
   }
-  return key instanceof Date ? key.toJSON() : key;
+  return key;
 };
 
 function indexify(key) {
@@ -158,16 +185,16 @@ function collationIndex(x) {
 // z = mantisse
 function numToIndexableString(num) {
 
+  if (num === 0) {
+    return '1';
+  }
+
   // convert number to exponential format for easier and
   // more succinct string sorting
   var expFormat = num.toExponential().split(/e\+?/);
   var magnitude = parseInt(expFormat[1], 10);
 
   var neg = num < 0;
-
-  if (num === 0) {
-    return '1';
-  }
 
   var result = neg ? '0' : '2';
 
