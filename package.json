@@ -14,8 +14,8 @@
     "couchdb"
   ],
   "scripts": {
-    "test": "./node_modules/.bin/jshint -c .jshintrc lib/*.js test/*.js && ./node_modules/istanbul/lib/cli.js test ./node_modules/mocha/bin/_mocha test/test.js",
-    "build": "mkdir -p dist && browserify lib/index.js -s pouchCollate -o dist/pouchdb-collate.js"
+    "test": "./node_modules/gulp/bin/gulp.js test",
+    "build": "./node_modules/gulp/bin/gulp.js build"
   },
   "license": "Apache",
   "bugs": {
@@ -23,9 +23,11 @@
   },
   "devDependencies": {
     "chai": "~1.8.1",
-    "mocha": "~1.15.1",
-    "istanbul": "~0.1.46",
-    "browserify": "~2.36.1",
-    "jshint": "~2.3.0"
+    "gulp": "^3.6.2",
+    "gulp-browserify": "^0.5.0",
+    "gulp-istanbul": "^0.1.1",
+    "gulp-jshint": "^1.5.5",
+    "gulp-mocha": "^0.4.1",
+    "gulp-rename": "^1.2.0"
   }
 }
