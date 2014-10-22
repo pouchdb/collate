@@ -58,6 +58,13 @@ The doc ID will be:
 
 Which is of course totally not human-readable, but it'll sort everything correctly (floats, booleans, ints &ndash; you name it).  If you need a human-readable doc ID, check out the [DocURI](https://github.com/jo/docuri) project.
 
+**Warning!** This will not work for CouchDB `_id`s, due to [a bug in how Chrome parses URLs](https://code.google.com/p/chromium/issues/detail?id=356924). Basically what you will need to do is remove all the `\u0000` characters and use some other separator. Assuming you're storing text data and not binary data, `\u0001` should be fine:
+
+```js
+pouchCollate.toIndexableString([/* ... */])
+    .replace(/\u0000/g, '\u0001');
+```
+
 ### collate(obj1, obj2)
 
 Give it two objects, and it'll return a number comparing them.  For example:
