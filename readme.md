@@ -58,11 +58,27 @@ The doc ID will be:
 
 Which is of course totally not human-readable, but it'll sort everything correctly (floats, booleans, ints &ndash; you name it).  If you need a human-readable doc ID, check out the [DocURI](https://github.com/jo/docuri) project.
 
-**Warning!** This will not work for CouchDB `_id`s, due to [a bug in how Chrome parses URLs](https://code.google.com/p/chromium/issues/detail?id=356924). Basically what you will need to do is remove all the `\u0000` characters and use some other separator. Assuming you're storing text data and not binary data, `\u0001` should be fine:
+**Warning!** If you are syncing or storing docs in CouchDB, then you will need to modify these doc IDs, due to [a bug in how Chrome parses URLs](https://code.google.com/p/chromium/issues/detail?id=356924), which causes problems in the replicator when it tries to `GET` docs at those URLs.
+
+In short, you will need to replace all the `\u0000` characters with some other separator. Assuming you're storing text data and not binary data, `\u0001` should be fine:
 
 ```js
 pouchCollate.toIndexableString([/* ... */])
     .replace(/\u0000/g, '\u0001');
+```
+
+### parseIndexableString(str)
+
+Same as the above, but in reverse. Given an indexable string, it'll give you back a structured object.
+
+For instance:
+
+```js
+var pouchCollate = require('pouchdb-collate');
+
+// [ 67, true, 'McDuck', 'Scrooge' ]
+pouchCollate.parseIndexableString(
+  '5323256.70000000000000017764\u000021\u00004McDuck\u00004Scrooge\u0000\u0000')
 ```
 
 ### collate(obj1, obj2)
