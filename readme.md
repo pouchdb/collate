@@ -1,6 +1,8 @@
 PouchDB Collate
 ===
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/pouchdb/collate.svg)](https://greenkeeper.io/)
+
 **Deprecation notice:** this repo is deprecated because the codebase has been [moved into the PouchDB repo](https://github.com/pouchdb/pouchdb/pull/5476). You can still `npm install pouchdb-collate` and use it normally, though.
 
 Collation functions for PouchDB map/reduce. Used by PouchDB map/reduce to maintain consistent [CouchDB collation ordering](https://wiki.apache.org/couchdb/View_collation).
